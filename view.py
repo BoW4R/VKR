@@ -2,7 +2,7 @@ import customtkinter as ct
 from tkinter import *
 
 import settings
-from controller import get_sensors, calculate_desired_speed
+from controller import get_sensors, get_desired_speed, get_turn_direction, get_closest_gas_station
 
 
 class Window(ct.CTk):
@@ -20,16 +20,23 @@ class Window(ct.CTk):
         self.temperature = StringVar()
         self.humidity = StringVar()
         self.desired_speed = StringVar()
+        self.cars_count = StringVar()
+        self.turn_direction = StringVar()
+        self.closest_gas_station = StringVar()
         self.init_data()
         self.init_menu()
 
     def init_data(self):
         data = get_sensors()
-        data["desired_speed"] = round(calculate_desired_speed(data), 2)
+        data["desired_speed"] = round(get_desired_speed(data), 2)
+        data["turn_direction"] = get_turn_direction(data)
         self.distance.set(data["distance_to_obstacle"])
         self.temperature.set(data["temperature"])
         self.humidity.set(data["humidity"])
         self.desired_speed.set(data["desired_speed"])
+        self.cars_count.set(data["cars_count"])
+        self.turn_direction.set(data["turn_direction"])
+        self.closest_gas_station.set(f"{get_closest_gas_station(data['current_location'])} км")
 
     def _on_key_release(self, event):
         """Позволяет копировать, вставлять и вырезать при русской раскладке"""
@@ -64,6 +71,9 @@ class Window(ct.CTk):
             "Температура: ": self.temperature,
             "Влажность: ": self.humidity,
             "Оптимальная скорость: ": self.desired_speed,
+            "Количество машин: ": self.cars_count,
+            "Направление движения: ": self.turn_direction,
+            "До ближайшей заправки: ": self.closest_gas_station,
         }
         for index, (field_name, field_value) in enumerate(fields.items()):
             ct.CTkLabel(
@@ -83,15 +93,11 @@ class Window(ct.CTk):
             font=ct.CTkFont(size=settings.VIEW_FONT_SIZE),
             command=self.init_data
         )
-        update_button.grid(column=0, columnspan=2, row=4, pady=3, padx=(140, 0))
+        update_button.grid(column=0, columnspan=2, row=7, pady=3, padx=(140, 0))
 
     def init_settings(self, frame) -> None:
         """Инициализация вкладки с настройками"""
         pass
-
-    # def report_callback_exception(self, exc, val, tb) -> None:
-    #     if exc is AccountProcessingError:
-    #         self.feedback_text.set(val)
 
 
 def mainloop():
